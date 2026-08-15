@@ -121,11 +121,6 @@
     50%      { opacity: 1; }
   }
 
-  @media (orientation: portrait) {
-    :root { --wm-w: min(76vw, 520px); --wm-top: 30%; }
-    .plate img { object-position: 50% 62%; }
-  }
-
   /* --- Links ------------------------------------------------------ */
 
   .scrim {
@@ -147,6 +142,30 @@
     margin: 0;
     padding: 0 24px;
     list-style: none;
+  }
+
+  /* Sits after the base .scrim and .elsewhere rules so its overrides
+     win in the cascade; a media query adds no specificity. */
+  @media (orientation: portrait) {
+    :root {
+      --wm-w: min(76vw, 520px); --wm-top: 30%;
+      --orb-size: 36px;
+      --orb-gap: clamp(18px, 5.2vw, 38px);
+    }
+    .plate img { object-position: 50% 62%; }
+
+    /* Deeper scrim so the icons keep contrast over the moonpath. */
+    .scrim {
+      height: clamp(240px, 34vh, 380px);
+      background: linear-gradient(to bottom,
+                  transparent 0%,
+                  rgba(5, 11, 20, 0.35) 40%,
+                  rgba(5, 11, 20, 0.78) 100%);
+    }
+
+    .elsewhere {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(84px, 15vh, 130px));
+    }
   }
 
   .orb {

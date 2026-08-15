@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mivim</title>
+<meta name="description" content="Remember this moment. Because now it&#39;s gone.">
+<link rel="canonical" href="https://mivim.net/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mivim">
+<meta property="og:description" content="Remember this moment. Because now it&#39;s gone.">
+<meta property="og:url" content="https://mivim.net/">
+<meta property="og:image" content="https://mivim.net/images/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="images/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<meta name="theme-color" content="#0a1521">
+
+<style>
+  /* ---------------------------------------------------------------
+     Palette sampled from the artwork.
+     --------------------------------------------------------------- */
+  :root {
+    --ink:      #050b14;
+    --deep:     #0e1c2a;
+    --slate:    #1b2c3c;
+    --moon:     #f4efe2;
+    --moon-dim: rgba(244, 239, 226, 0.34);
+    --halo:     rgba(206, 224, 240, 0.55);
+
+    --orb-size: clamp(30px, 4.4vw, 38px);
+    --orb-gap:  clamp(20px, 5.6vw, 44px);
+
+    /* Wordmark placement. The date hangs off these, so it stays put
+       relative to the name at every size. Art is 1200x360, so half its
+       rendered height is --wm-w * 0.15. */
+    --wm-w:   min(46vw, 760px);
+    --wm-top: 33%;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--ink); }
+
+  body {
+    background: radial-gradient(120% 90% at 50% 44%,
+                var(--slate) 0%, var(--deep) 48%, var(--ink) 100%);
+    color: var(--moon);
+    font: 400 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  .stage { position: fixed; inset: 0; }
+
+  /* --- Plate ------------------------------------------------------ */
+  /* The plate carries no type, so it can crop freely at any ratio. */
+
+  .plate { position: absolute; inset: 0; }
+  .plate img {
+    display: block;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+  }
+
+  /* --- Wordmark --------------------------------------------------- */
+  /* Layered, so it scales independently and never gets cropped. */
+
+  .wordmark {
+    position: absolute;
+    left: 50%;
+    top: var(--wm-top);
+    transform: translate(-50%, -50%);
+    width: var(--wm-w);
+    pointer-events: none;
+    user-select: none;
+  }
+  .wordmark picture { display: block; }
+  .wordmark img { display: block; width: 100%; height: auto; }
+
+  /* --- Shimmer ----------------------------------------------------- */
+  /* A second copy of just the leaf, brightened and revealed through a
+     narrow moving gradient, so light appears to catch the leaf and pass
+     across it. The two cycles have different periods (13s and 23s), so
+     the sweeps land at varying brightness and the pattern takes nearly
+     five minutes to repeat. Reads as weather, not as a loop. */
+
+  img.wordmark__glint {
+    position: absolute;
+    inset: 0;
+    display: none;
+    opacity: 0;
+    filter: brightness(2.5) contrast(1.05);
+    mix-blend-mode: screen;
+    -webkit-mask-image: linear-gradient(101deg, transparent 41%, #000 50%, transparent 59%);
+            mask-image: linear-gradient(101deg, transparent 41%, #000 50%, transparent 59%);
+    -webkit-mask-size: 260% 100%;
+            mask-size: 260% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+  }
+
+  @supports (mask-image: linear-gradient(#000, #000)) or
+            (-webkit-mask-image: linear-gradient(#000, #000)) {
+    img.wordmark__glint {
+      display: block;
+      animation: sweep 13s linear infinite, glimmer 23s ease-in-out infinite;
+    }
+  }
+
+  @keyframes sweep {
+    0%   { -webkit-mask-position: 132% 0; mask-position: 132% 0; }
+    24%  { -webkit-mask-position: -32% 0; mask-position: -32% 0; }
+    100% { -webkit-mask-position: -32% 0; mask-position: -32% 0; }
+  }
+
+  @keyframes glimmer {
+    0%, 100% { opacity: 0.30; }
+    50%      { opacity: 1; }
+  }
+
+  @media (orientation: portrait) {
+    :root { --wm-w: min(76vw, 520px); --wm-top: 30%; }
+    .plate img { object-position: 50% 62%; }
+  }
+
+  /* --- Links ------------------------------------------------------ */
+
+  .scrim {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: clamp(170px, 28vh, 300px);
+    background: linear-gradient(to bottom,
+                transparent 0%, rgba(5, 11, 20, 0.22) 45%, rgba(5, 11, 20, 0.5) 100%);
+    pointer-events: none;
+  }
+
+  .elsewhere {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(66px, 14vh, 122px));
+    display: flex;
+    justify-content: center;
+    gap: var(--orb-gap);
+    margin: 0;
+    padding: 0 24px;
+    list-style: none;
+  }
+
+  .orb {
+    display: block;
+    width: var(--orb-size); height: var(--orb-size);
+    color: var(--moon-dim);
+    text-decoration: none;
+    filter: drop-shadow(0 0 3px rgba(206, 224, 240, 0.18));
+    transition: color 700ms ease, filter 700ms ease, transform 700ms ease;
+  }
+  .orb svg { display: block; width: 100%; height: 100%; }
+
+  /* Live links wax and wane, like the two moons over the i's. */
+  a.orb { animation: wane 11s ease-in-out infinite; }
+  .elsewhere li:nth-child(2) a.orb { animation-delay: -1.8s; }
+  .elsewhere li:nth-child(3) a.orb { animation-delay: -3.6s; }
+  .elsewhere li:nth-child(4) a.orb { animation-delay: -5.4s; }
+  .elsewhere li:nth-child(5) a.orb { animation-delay: -7.2s; }
+  .elsewhere li:nth-child(6) a.orb { animation-delay: -9.0s; }
+
+  @keyframes wane {
+    0%, 100% { color: var(--moon-dim); }
+    50%      { color: rgba(244, 239, 226, 0.52); }
+  }
+
+  a.orb:hover, a.orb:focus-visible {
+    color: var(--moon);
+    filter: drop-shadow(0 0 10px var(--halo)) drop-shadow(0 0 22px rgba(206, 224, 240, 0.3));
+    transform: translateY(-2px);
+    animation-play-state: paused;
+  }
+  a.orb:focus-visible { outline: 1px solid var(--halo); outline-offset: 8px; border-radius: 2px; }
+
+  /* Unlit: a platform Mivim is not on yet. */
+  .orb[aria-disabled="true"] {
+    color: rgba(244, 239, 226, 0.42);
+    filter: drop-shadow(0 0 6px rgba(206, 224, 240, 0.22));
+    cursor: default;
+    animation: none;
+  }
+
+  /* --- Arrival ---------------------------------------------------- */
+  /* One orchestrated moment: the scene surfaces, then the word, then
+     the links. Nothing else moves. */
+
+  .plate    { animation: surface 1400ms ease-out both; }
+  .wordmark { animation: surface 1800ms ease-out 500ms both; }
+  .elsewhere{ animation: surface 1200ms ease-out 1600ms both; }
+
+  @keyframes surface {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plate, .wordmark, .elsewhere { animation: none; }
+    .signal { animation: none; opacity: 0.66; }
+    img.wordmark__glint { animation: none; opacity: 0; }
+    a.orb { animation: none; transition: color 120ms linear; }
+    a.orb:hover, a.orb:focus-visible { transform: none; }
+  }
+
+  /* Touch screens have no hover, so lift the resting brightness. */
+  @media (hover: none) {
+    a.orb { animation: none; color: rgba(244, 239, 226, 0.5); }
+  }
+
+  /* --- The date ---------------------------------------------------- */
+  /* Surfaces on a 31s cycle, catches, slips, holds, and goes. Coprime
+     with the shimmer's 13s and 23s, so nothing ever lines up twice. */
+
+  .signal {
+    position: absolute;
+    left: 0; right: 0;
+    /* Sits a clear gap below the wordmark, not adrift above the icons. */
+    top: calc(var(--wm-top) + (var(--wm-w) * 0.15) + clamp(30px, 5.5vh, 68px));
+    margin: 0;
+    text-align: center;
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: clamp(14px, 1.9vw, 19px);
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;   /* offsets the trailing letter-space */
+    color: var(--moon);
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 0 0 16px rgba(206, 224, 240, 0.45);
+    animation: surfacing 31s ease-in-out 4s infinite;
+  }
+
+  @keyframes surfacing {
+    0%,  8%   { opacity: 0; }
+    13%       { opacity: 0.42; }
+    16%       { opacity: 0.08; }
+    23%       { opacity: 0.78; }
+    48%       { opacity: 0.74; }
+    54%       { opacity: 0.16; }
+    58%       { opacity: 0.50; }
+    70%, 100% { opacity: 0; }
+  }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+</head>
+
+<body>
+<main class="stage">
+  <h1 class="sr-only">Mivim</h1>
+
+  <picture class="plate">
+    <source media="(orientation: portrait)" srcset="images/plate-tall.webp" type="image/webp">
+    <source media="(orientation: portrait)" srcset="images/plate-tall.jpg"  type="image/jpeg">
+    <source srcset="images/plate-wide.webp" type="image/webp">
+    <img src="images/plate-wide.jpg" alt="" fetchpriority="high">
+  </picture>
+
+  <div class="wordmark">
+    <picture>
+      <source srcset="images/wordmark.webp" type="image/webp">
+      <img class="wordmark__base" src="images/wordmark.png" alt="Mivim" fetchpriority="high">
+    </picture>
+    <picture>
+      <source srcset="images/wordmark-leaf.webp" type="image/webp">
+      <img class="wordmark__glint" src="images/wordmark-leaf.png" alt="" aria-hidden="true">
+    </picture>
+  </div>
+
+  <div class="scrim"></div>
+
+  <p class="signal">
+    <time datetime="2026-10-17" aria-label="October 17, 2026">10 &middot; 17 &middot; 26</time>
+  </p>
+
+  <!-- ===============================================================
+       TO ACTIVATE A LINK
+         1. add   href="https://..."
+         2. delete   aria-disabled="true"
+         3. shorten the aria-label, e.g. "Instagram, not yet" to "Instagram"
+       Leave the <svg> alone.
+       =============================================================== -->
+  <ul class="elsewhere">
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="Instagram, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5"/>
+          <circle cx="12" cy="12" r="4.25"/>
+          <circle cx="16.9" cy="7.1" r="0.95" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+    </li>
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="YouTube, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.25" y="5.5" width="19.5" height="13" rx="4"/>
+          <path d="M10.4 9.4 15.6 12 10.4 14.6Z"/>
+        </svg>
+      </a>
+    </li>
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="Spotify, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.75"/>
+          <path d="M6.9 9.1c3.9-1.1 8.5-.5 11.4 1.7"/>
+          <path d="M7.6 12.2c3.3-.9 7.2-.4 9.8 1.4"/>
+          <path d="M8.5 15.2c2.5-.7 5.4-.3 7.4 1.1"/>
+        </svg>
+      </a>
+    </li>
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="SoundCloud, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2.3 13.5V15.9"/>
+          <path d="M5 11.7V15.9"/>
+          <path d="M7.6 13V15.9"/>
+          <path d="M10.25 10.8V15.9"/>
+          <path d="M12.9 15.9V10.6c0-3.3 4.84-4.18 6.6-.88a2.64 2.64 0 0 1 .66 6.16z"/>
+        </svg>
+      </a>
+    </li>
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="Facebook, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15.6 5.8h-1.1a3.1 3.1 0 0 0-3.1 3.1V20.4"/>
+          <path d="M9.2 12.4h5.7"/>
+        </svg>
+      </a>
+    </li>
+
+    <li>
+      <a class="orb" aria-disabled="true" aria-label="X, not yet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5.4 5.2 18.6 18.8"/>
+          <path d="M18.6 5.2 5.4 18.8"/>
+        </svg>
+      </a>
+    </li>
+
+  </ul>
+</main>
+</body>
+</html>
